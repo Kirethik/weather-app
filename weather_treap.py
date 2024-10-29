@@ -7,11 +7,16 @@ from dotenv import load_dotenv
 from liveflight import getFlightDetails
 from iata import getIataCode, airports
 
+# Load environment variables from .env file
 load_dotenv()
 apiKey = os.getenv('weather_api')
 
+# Main class for the Weather Application
 class WeatherApp:
     def __init__(self, root):
+        # Initialize the root Tkinter window with settings
+        # Time Complexity: O(1)
+        # Explanation: Initializes widgets without loops or data structure manipulation, so it takes constant time.
         self.root = root
         self.root.title("Weather App")
         self.root.geometry("600x600")
@@ -24,8 +29,10 @@ class WeatherApp:
         self.createWidgets()
 
     def loadLocations(self):
+        # Load existing locations from a JSON file if available
+        # Time Complexity: O(N), where N is the number of locations
+        # Explanation: Reads a file and iterates through each location to format and load into a list.
         try:
-            # Load existing locations from the JSON file
             if os.path.exists("locations.json"):
                 with open("locations.json", "r") as jsonFile:
                     content = jsonFile.read()
@@ -37,6 +44,9 @@ class WeatherApp:
         return []  # Return an empty list if file doesn't exist or is empty
 
     def createWidgets(self):
+        # Create and arrange the Tkinter widgets
+        # Time Complexity: O(1)
+        # Explanation: This method only initializes widgets without any loops or complex operations.
         self.locationLabel = tk.Label(self.root, text="Select location to get weather:", bg="#f0f0f0")
         self.locationLabel.pack(pady=(20, 10))
 
@@ -65,27 +75,39 @@ class WeatherApp:
         self.weatherCanvas.create_window((0, 0), window=self.weatherFrameInner, anchor="nw")
 
     def showLoadingMessage(self):
+        # Display a loading message in the frame
+        # Time Complexity: O(1)
+        # Explanation: Adds a single label to the GUI, requiring constant time.
         self.loadingLabel = tk.Label(self.weatherFrameInner, text="Loading...", justify="center", anchor="center", bg="#f0f0f0")
         self.loadingLabel.pack(pady=10)
 
     def removeLoadingMessage(self):
+        # Remove the loading message from the frame if it exists
+        # Time Complexity: O(1)
+        # Explanation: Checks and removes a label if it exists, taking constant time.
         if hasattr(self, 'loadingLabel'):
             self.loadingLabel.destroy()
 
     def fetchAndDisplayWeather(self, locationName):
+        # Fetch and display weather information for the specified location
+        # Time Complexity: O(1) for showing loading message, O(1) for API call initiation, O(M) for displaying results,
+        # where M is the number of elements in weatherData. Network time depends on response delay.
         self.showLoadingMessage()  # Show loading message
         apiEndpoint = 'http://api.openweathermap.org/data/2.5/weather'
         url = f"{apiEndpoint}?appid={apiKey}&q={locationName}&units=metric"
 
         try:
+            # Make API request for weather data
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses
             weatherData = response.json()
 
+            # Extract weather information
             temperature = weatherData['main']['temp']
             humidity = weatherData['main']['humidity']
             description = weatherData['weather'][0]['description']
 
+            # Display weather info in the GUI
             weatherInfo = f"Weather in {locationName}:\n" \
                           f"Temperature: {temperature:.2f}°C\n" \
                           f"Humidity: {humidity}%\n" \
@@ -94,7 +116,7 @@ class WeatherApp:
             weatherLabel = tk.Label(self.weatherFrameInner, text=weatherInfo, justify="center", anchor="center", bg="#f0f0f0")
             weatherLabel.pack(pady=10)
 
-            # Center the weather info
+            # Update the canvas with the new weather information
             self.weatherFrameInner.update_idletasks()  # Update the layout
             self.weatherCanvas.config(scrollregion=self.weatherCanvas.bbox("all"))
 
@@ -104,10 +126,16 @@ class WeatherApp:
             self.removeLoadingMessage()  # Remove loading message
 
     def displayErrorMessage(self, message):
+        # Display an error message in the frame
+        # Time Complexity: O(1)
+        # Explanation: Adds a single label to display an error message.
         errorLabel = tk.Label(self.weatherFrameInner, text=message, justify="center", anchor="center", bg="#f0f0f0")
         errorLabel.pack(pady=10)
 
     def getWeather(self):
+        # Retrieve and display weather information for selected locations
+        # Time Complexity: O(M) for widget clearing, where M is the number of child widgets,
+        # plus the complexity of fetchAndDisplayWeather for each location.
         selectedLocation = self.comboBox.get()
         if selectedLocation:
             # Split the selected location into departure and arrival
@@ -127,6 +155,9 @@ class WeatherApp:
                 self.fetchAndDisplayWeather(arrivalLocation)
 
     def getFlights(self):
+        # Retrieve flight details based on selected departure and arrival locations
+        # Time Complexity: O(1) for selection and verification, plus O(F) for IATA code lookup, where F is the complexity of getIataCode.
+        # The call to getFlightDetails depends on how it processes IATA codes.
         selectedLocation = self.comboBox.get()
         if selectedLocation:
             # Split the selected location into arrival and destination
